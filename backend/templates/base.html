@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>{% block title %}Vigília{% endblock %}</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --blue-900: #1a3a5c;
+      --blue-700: #1d4ed8;
+      --blue-600: #2563eb;
+      --blue-100: #dbeafe;
+      --blue-50:  #eff6ff;
+      --gray-900: #111827;
+      --gray-600: #4b5563;
+      --gray-400: #9ca3af;
+      --gray-200: #e5e7eb;
+      --gray-100: #f3f4f6;
+      --green-600: #16a34a;
+      --green-100: #dcfce7;
+      --yellow-600: #ca8a04;
+      --yellow-100: #fef9c3;
+      --red-600: #dc2626;
+      --red-100: #fee2e2;
+      --radius: 12px;
+      --shadow: 0 1px 3px rgba(0,0,0,.1), 0 1px 2px rgba(0,0,0,.06);
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      background: var(--gray-100);
+      color: var(--gray-900);
+      min-height: 100vh;
+    }
+
+    /* NAV */
+    nav {
+      background: var(--blue-900);
+      padding: 0 2rem;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      height: 60px;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+    }
+    .nav-logo { color: #fff; font-size: 1.25rem; font-weight: 700; text-decoration: none; display: flex; align-items: center; gap: .5rem; }
+    .nav-logo span { font-size: 1.5rem; }
+    .nav-user { color: #93c5fd; font-size: .875rem; display: flex; align-items: center; gap: 1rem; }
+    .nav-user a { color: #93c5fd; text-decoration: none; }
+    .nav-user a:hover { color: #fff; }
+
+    /* LAYOUT */
+    .container { max-width: 900px; margin: 0 auto; padding: 2rem 1rem; }
+
+    /* CARDS */
+    .card { background: #fff; border-radius: var(--radius); box-shadow: var(--shadow); padding: 1.5rem; margin-bottom: 1.5rem; }
+    .card-header { display: flex; align-items: center; gap: 1rem; margin-bottom: 1.25rem; }
+    .card-icon { width: 44px; height: 44px; border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 1.25rem; flex-shrink: 0; }
+    .card-icon.blue  { background: var(--blue-100); }
+    .card-icon.pink  { background: #fce7f3; }
+    .card-title { font-size: 1rem; font-weight: 700; }
+    .card-desc  { font-size: .8125rem; color: var(--gray-600); margin-top: .2rem; }
+
+    /* BUTTONS */
+    .btn { display: inline-flex; align-items: center; gap: .4rem; padding: .6rem 1.25rem; border-radius: 8px; font-size: .875rem; font-weight: 600; cursor: pointer; border: none; text-decoration: none; transition: opacity .15s; }
+    .btn:hover { opacity: .85; }
+    .btn-primary { background: var(--blue-700); color: #fff; }
+    .btn-secondary { background: var(--gray-200); color: var(--gray-900); }
+    .btn-danger  { background: var(--red-100); color: var(--red-600); }
+    .btn-full { width: 100%; justify-content: center; padding: .875rem; font-size: 1rem; border-radius: 10px; }
+
+    /* BADGES */
+    .badge { display: inline-block; padding: .2rem .6rem; border-radius: 999px; font-size: .75rem; font-weight: 600; }
+    .badge-safe      { background: var(--green-100); color: var(--green-600); }
+    .badge-attention { background: var(--yellow-100); color: var(--yellow-600); }
+    .badge-high_risk { background: var(--red-100); color: var(--red-600); }
+
+    /* PAGE HEADER */
+    .page-header { margin-bottom: 1.75rem; }
+    .page-header h1 { font-size: 1.5rem; font-weight: 700; color: var(--blue-900); }
+    .page-header p  { color: var(--gray-600); margin-top: .35rem; font-size: .9rem; }
+    .back-link { display: inline-flex; align-items: center; gap: .4rem; color: var(--blue-700); text-decoration: none; font-size: .875rem; font-weight: 500; margin-bottom: 1rem; }
+    .back-link:hover { text-decoration: underline; }
+  </style>
+  {% block extra_head %}{% endblock %}
+</head>
+<body>
+
+{% if user.is_authenticated %}
+<nav>
+  <a class="nav-logo" href="{% url 'dashboard:home' %}"><span>🛡️</span> Vigília</a>
+  <div class="nav-user">
+    <span>{{ user.email }}</span>
+    <a href="{% url 'dashboard:api_docs' %}">API Docs</a>
+    <a href="{% url 'dashboard:logout' %}">Sair</a>
+  </div>
+</nav>
+{% endif %}
+
+<div class="container">
+  {% block content %}{% endblock %}
+</div>
+
+{% block extra_js %}{% endblock %}
+</body>
+</html>

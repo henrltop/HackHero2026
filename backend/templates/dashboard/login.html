@@ -1,0 +1,52 @@
+{% extends "base.html" %}
+{% block title %}Login — Vigília{% endblock %}
+
+{% block extra_head %}
+<style>
+  body { display: flex; align-items: center; justify-content: center; min-height: 100vh; background: var(--blue-900); }
+  .container { width: 100%; max-width: 420px; padding: 1rem; }
+  .login-card { background: #fff; border-radius: 16px; padding: 2.5rem 2rem; box-shadow: 0 20px 60px rgba(0,0,0,.25); }
+  .login-logo { text-align: center; margin-bottom: 2rem; }
+  .login-logo .icon { font-size: 3rem; display: block; margin-bottom: .5rem; }
+  .login-logo h1 { font-size: 1.75rem; font-weight: 800; color: var(--blue-900); }
+  .login-logo p  { color: var(--gray-600); font-size: .875rem; margin-top: .25rem; }
+  .form-group { margin-bottom: 1.25rem; }
+  label { display: block; font-size: .875rem; font-weight: 600; color: var(--gray-900); margin-bottom: .4rem; }
+  input[type=email], input[type=password] {
+    width: 100%; padding: .75rem 1rem; border: 1.5px solid var(--gray-200);
+    border-radius: 8px; font-size: .9375rem; outline: none; transition: border .2s;
+  }
+  input:focus { border-color: var(--blue-600); box-shadow: 0 0 0 3px rgba(37,99,235,.1); }
+  .error-msg { background: var(--red-100); color: var(--red-600); padding: .75rem 1rem; border-radius: 8px; font-size: .875rem; margin-bottom: 1.25rem; }
+  .login-footer { text-align: center; margin-top: 1.5rem; font-size: .8125rem; color: var(--gray-400); }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="login-card">
+  <div class="login-logo">
+    <span class="icon">🛡️</span>
+    <h1>Vigília</h1>
+    <p>Painel dos Responsáveis</p>
+  </div>
+
+  {% if error %}
+  <div class="error-msg">{{ error }}</div>
+  {% endif %}
+
+  <form method="post">
+    {% csrf_token %}
+    <div class="form-group">
+      <label for="email">E-mail</label>
+      <input type="email" id="email" name="email" placeholder="seu@email.com" required autofocus>
+    </div>
+    <div class="form-group">
+      <label for="password">Senha</label>
+      <input type="password" id="password" name="password" placeholder="••••••••" required>
+    </div>
+    <button type="submit" class="btn btn-primary btn-full">Entrar</button>
+  </form>
+
+  <div class="login-footer">Monitoramento parental com IA · Vigília 2026</div>
+</div>
+{% endblock %}

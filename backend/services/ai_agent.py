@@ -26,28 +26,30 @@ MOCK_REPORT = {
 
 
 def analyze_image(image_bytes: bytes, triggers: list[str]) -> dict:
-    api_key = os.environ.get("MISTRAL_API_KEY", "")
+    api_key = os.environ.get("GEMINI_API_KEY", "")
     if not api_key:
         return MOCK_REPORT
 
     try:
-        from mistralai import Mistral
+        from google import genai
+        from google.genai import types
 
-        client = Mistral(api_key=api_key)
-        image_b64 = base64.b64encode(image_bytes).decode("utf-8")
+        client = genai.Client(api_key=api_key)
         prompt = SYSTEM_PROMPT.format(triggers=", ".join(triggers) if triggers else "nenhum")
 
-        response = client.chat.complete(
-            model="mistral-small-latest",
-            messages=[{
-                "role": "user",
-                "content": [
-                    {"type": "text", "text": prompt},
-                    {"type": "image_url", "image_url": f"data:image/jpeg;base64,{image_b64}"},
-                ],
-            }],
+        response = client.models.generate_content(
+            model="gemini-2.5-flash",
+            contents=[
+                prompt,
+                types.Part.from_bytes(data=image_bytes, mime_type="image/jpeg"),
+            ],
         )
-        return json.loads(response.choices[0].message.content)
+
+        text = response.text.strip()
+        if text.startswith("```"):
+            text = text.split("\n", 1)[1].rsplit("```", 1)[0].strip()
+
+        return json.loads(text)
     except Exception:
         return MOCK_REPORT
     finally:

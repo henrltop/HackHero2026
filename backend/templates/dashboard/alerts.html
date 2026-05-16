@@ -1,0 +1,127 @@
+{% extends "base.html" %}
+{% block title %}Alertas — {{ device.child_name }}{% endblock %}
+
+{% block extra_head %}
+<style>
+  .filter-bar { display: flex; gap: .65rem; margin-bottom: 1.5rem; flex-wrap: wrap; }
+  .filter-btn {
+    padding: .45rem 1rem; border-radius: 999px; font-size: .8125rem; font-weight: 600;
+    border: 1.5px solid var(--gray-200); background: #fff; cursor: pointer;
+    text-decoration: none; color: var(--gray-600); transition: all .15s;
+  }
+  .filter-btn:hover { border-color: var(--blue-600); color: var(--blue-700); }
+  .filter-btn.active { background: var(--blue-700); border-color: var(--blue-700); color: #fff; }
+  .filter-btn.high_risk.active  { background: var(--red-600); border-color: var(--red-600); }
+  .filter-btn.attention.active  { background: var(--yellow-600); border-color: var(--yellow-600); }
+  .filter-btn.safe.active       { background: var(--green-600); border-color: var(--green-600); }
+
+  .alert-list { display: flex; flex-direction: column; gap: .75rem; }
+  .alert-item {
+    background: #fff; border-radius: var(--radius); box-shadow: var(--shadow);
+    padding: 1.125rem 1.25rem; display: flex; gap: 1rem; align-items: flex-start;
+    border-left: 4px solid transparent;
+  }
+  .alert-item.high_risk { border-left-color: var(--red-600); }
+  .alert-item.attention { border-left-color: var(--yellow-600); }
+  .alert-item.safe      { border-left-color: var(--green-600); }
+
+  .alert-icon { font-size: 1.5rem; flex-shrink: 0; margin-top: .1rem; }
+  .alert-body { flex: 1; min-width: 0; }
+  .alert-top { display: flex; align-items: center; gap: .65rem; flex-wrap: wrap; margin-bottom: .35rem; }
+  .alert-desc { font-size: .9rem; color: var(--gray-600); line-height: 1.5; }
+  .alert-meta { display: flex; gap: 1rem; margin-top: .5rem; flex-wrap: wrap; }
+  .alert-meta span { font-size: .775rem; color: var(--gray-400); }
+  .alert-confidence {
+    margin-left: auto; font-size: .8125rem; font-weight: 700;
+    color: var(--gray-400); flex-shrink: 0; align-self: center;
+  }
+
+  .empty-state { text-align: center; padding: 4rem 2rem; color: var(--gray-400); }
+  .empty-state .icon { font-size: 3.5rem; display: block; margin-bottom: 1rem; }
+
+  .summary-bar {
+    display: grid; grid-template-columns: repeat(3, 1fr); gap: .75rem; margin-bottom: 1.5rem;
+  }
+  .summary-card {
+    background: #fff; border-radius: 10px; padding: 1rem; text-align: center;
+    box-shadow: var(--shadow);
+  }
+  .summary-card .num { font-size: 1.75rem; font-weight: 800; }
+  .summary-card .lbl { font-size: .75rem; color: var(--gray-600); margin-top: .2rem; }
+  .num-red    { color: var(--red-600); }
+  .num-yellow { color: var(--yellow-600); }
+  .num-green  { color: var(--green-600); }
+</style>
+{% endblock %}
+
+{% block content %}
+<a href="{% url 'dashboard:home' %}" class="back-link">← Voltar</a>
+
+<div class="page-header">
+  <h1>Alertas</h1>
+  <p>Histórico de monitoramento de <strong>{{ device.child_name }}</strong></p>
+</div>
+
+<!-- Resumo -->
+{% with all_alerts=device.alerts.all %}
+<div class="summary-bar">
+  <div class="summary-card">
+    <div class="num num-red">{{ all_alerts|length }}</div>
+    <div class="lbl">Total</div>
+  </div>
+  <div class="summary-card">
+    <div class="num num-yellow">
+      {{ all_alerts|dictsort:"risk_level"|length }}
+    </div>
+    <div class="lbl">Atenção</div>
+  </div>
+  <div class="summary-card">
+    <div class="num num-green">{{ device.monitored_apps.count }}</div>
+    <div class="lbl">Apps monitorados</div>
+  </div>
+</div>
+{% endwith %}
+
+<!-- Filtros -->
+<div class="filter-bar">
+  <a href="?risk=" class="filter-btn {% if not risk_filter %}active{% endif %}">Todos</a>
+  <a href="?risk=high_risk" class="filter-btn high_risk {% if risk_filter == 'high_risk' %}active{% endif %}">🔴 Alto Risco</a>
+  <a href="?risk=attention" class="filter-btn attention {% if risk_filter == 'attention' %}active{% endif %}">🟡 Atenção</a>
+  <a href="?risk=safe"      class="filter-btn safe      {% if risk_filter == 'safe'      %}active{% endif %}">🟢 Seguro</a>
+</div>
+
+<!-- Lista -->
+{% if alerts %}
+<div class="alert-list">
+  {% for alert in alerts %}
+  <div class="alert-item {{ alert.risk_level }}">
+    <div class="alert-icon">
+      {% if alert.risk_level == "high_risk" %}🔴
+      {% elif alert.risk_level == "attention" %}🟡
+      {% else %}🟢{% endif %}
+    </div>
+    <div class="alert-body">
+      <div class="alert-top">
+        <span class="badge badge-{{ alert.risk_level }}">{{ alert.get_risk_level_display }}</span>
+        {% if alert.category %}<span class="badge" style="background:var(--gray-100);color:var(--gray-600);">{{ alert.category }}</span>{% endif %}
+      </div>
+      <div class="alert-desc">{{ alert.description }}</div>
+      <div class="alert-meta">
+        <span>🕐 {{ alert.created_at|date:"d/m/Y H:i" }}</span>
+        {% if alert.app_package %}<span>📱 {{ alert.app_package }}</span>{% endif %}
+      </div>
+    </div>
+    <div class="alert-confidence">{{ alert.confidence|floatformat:0 }}%</div>
+  </div>
+  {% endfor %}
+</div>
+
+{% else %}
+<div class="card empty-state">
+  <span class="icon">✅</span>
+  <h2 style="font-size:1.125rem; color:var(--gray-900); margin-bottom:.5rem;">Nenhum alerta encontrado</h2>
+  <p>{% if risk_filter %}Nenhum alerta com esse nível de risco.{% else %}Tudo tranquilo por aqui. Nenhum conteúdo de risco detectado ainda.{% endif %}</p>
+</div>
+{% endif %}
+
+{% endblock %}

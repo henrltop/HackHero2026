@@ -1,0 +1,150 @@
+{% extends "base.html" %}
+{% block title %}API Docs — Vigília{% endblock %}
+
+{% block extra_head %}
+<style>
+  .section { margin-bottom: 2rem; }
+  .section-title {
+    font-size: 1.125rem; font-weight: 700; color: var(--blue-900);
+    margin-bottom: 1rem; padding-bottom: .5rem;
+    border-bottom: 2px solid var(--blue-100);
+  }
+
+  .endpoint { background: #fff; border-radius: var(--radius); box-shadow: var(--shadow); margin-bottom: .75rem; overflow: hidden; }
+  .endpoint-header {
+    display: flex; align-items: center; gap: .75rem;
+    padding: 1rem 1.25rem; cursor: pointer; user-select: none;
+  }
+  .endpoint-header:hover { background: var(--gray-100); }
+  .method {
+    font-size: .75rem; font-weight: 800; padding: .25rem .6rem;
+    border-radius: 6px; min-width: 54px; text-align: center; flex-shrink: 0;
+  }
+  .method.GET    { background: #dbeafe; color: #1d4ed8; }
+  .method.POST   { background: #dcfce7; color: #15803d; }
+  .method.DELETE { background: #fee2e2; color: #dc2626; }
+  .method.PATCH  { background: #fef9c3; color: #ca8a04; }
+
+  .endpoint-path { font-family: monospace; font-size: .9375rem; font-weight: 600; color: var(--gray-900); }
+  .endpoint-desc { font-size: .8125rem; color: var(--gray-600); margin-left: auto; }
+  .auth-badge {
+    font-size: .7rem; font-weight: 700; padding: .15rem .5rem;
+    border-radius: 999px; flex-shrink: 0;
+  }
+  .auth-badge.jwt  { background: #f3e8ff; color: #7c3aed; }
+  .auth-badge.open { background: var(--gray-100); color: var(--gray-400); }
+
+  .endpoint-body { border-top: 1px solid var(--gray-200); padding: 1.25rem; display: none; }
+  .endpoint-body.open { display: block; }
+
+  .tabs { display: flex; gap: 0; margin-bottom: 1rem; border-bottom: 1px solid var(--gray-200); }
+  .tab {
+    padding: .5rem 1rem; font-size: .8125rem; font-weight: 600;
+    cursor: pointer; border-bottom: 2px solid transparent; margin-bottom: -1px;
+    color: var(--gray-600);
+  }
+  .tab.active { border-bottom-color: var(--blue-700); color: var(--blue-700); }
+  .tab-content { display: none; }
+  .tab-content.active { display: block; }
+
+  pre {
+    background: #0f172a; color: #e2e8f0; border-radius: 8px;
+    padding: 1rem 1.25rem; font-size: .8125rem; line-height: 1.6;
+    overflow-x: auto; white-space: pre-wrap; word-break: break-all;
+  }
+  .key   { color: #7dd3fc; }
+  .str   { color: #86efac; }
+  .num   { color: #fda4af; }
+  .kw    { color: #c084fc; }
+
+  .params-table { width: 100%; border-collapse: collapse; font-size: .85rem; }
+  .params-table th { text-align: left; padding: .5rem .75rem; background: var(--gray-100); color: var(--gray-600); font-weight: 600; }
+  .params-table td { padding: .5rem .75rem; border-top: 1px solid var(--gray-200); vertical-align: top; }
+  .required { color: var(--red-600); font-weight: 700; font-size: .75rem; }
+  .optional { color: var(--gray-400); font-size: .75rem; }
+  .param-type { font-family: monospace; font-size: .8rem; color: var(--blue-700); }
+
+  .base-url-bar {
+    background: var(--blue-900); color: #93c5fd; padding: .75rem 1.25rem;
+    border-radius: 10px; font-family: monospace; font-size: .9rem;
+    margin-bottom: 2rem; display: flex; align-items: center; gap: .75rem;
+  }
+  .base-url-bar span { color: #fff; font-weight: 700; }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <h1>📋 API Docs</h1>
+  <p>Documentação de todos os endpoints do Vigília.</p>
+</div>
+
+<div class="base-url-bar">
+  <span>Base URL:</span> http://localhost:8000
+</div>
+
+<!-- AUTH -->
+<div class="section">
+  <div class="section-title">🔐 Autenticação</div>
+
+  {% include "dashboard/_endpoint.html" with method="POST" path="/api/auth/register/" desc="Cadastro do responsável" auth="open" params='[["email","string","Obrigatório"],["username","string","Obrigatório"],["password","string","Obrigatório"]]' req='{"email":"pai@email.com","username":"joao","password":"senha1234"}' res='{"access":"eyJ...","refresh":"eyJ...","user":{"id":1,"email":"pai@email.com"}}' %}
+
+  {% include "dashboard/_endpoint.html" with method="POST" path="/api/auth/login/" desc="Login → retorna JWT" auth="open" params='[["email","string","Obrigatório"],["password","string","Obrigatório"]]' req='{"email":"pai@email.com","password":"senha1234"}' res='{"access":"eyJ...","refresh":"eyJ..."}' %}
+
+  {% include "dashboard/_endpoint.html" with method="POST" path="/api/auth/refresh/" desc="Renova o access token" auth="open" params='[["refresh","string","Obrigatório"]]' req='{"refresh":"eyJ..."}' res='{"access":"eyJ...novo..."}' %}
+
+  {% include "dashboard/_endpoint.html" with method="GET" path="/api/auth/me/" desc="Dados do usuário logado" auth="jwt" params='[]' req="" res='{"id":1,"email":"pai@email.com","username":"joao"}' %}
+</div>
+
+<!-- DEVICES -->
+<div class="section">
+  <div class="section-title">📱 Devices</div>
+
+  {% include "dashboard/_endpoint.html" with method="GET" path="/api/devices/" desc="Lista devices do responsável" auth="jwt" params='[]' req="" res='[{"id":1,"child_name":"João","device_token":"abc123","fcm_token":null}]' %}
+
+  {% include "dashboard/_endpoint.html" with method="POST" path="/api/devices/" desc="Registra device da criança" auth="jwt" params='[["child_name","string","Obrigatório"],["fcm_token","string","Opcional — push notifications"]]' req='{"child_name":"João","fcm_token":"fcm-token-aqui"}' res='{"id":1,"child_name":"João","device_token":"a1b2c3d4e5f6...","fcm_token":null}' %}
+
+  {% include "dashboard/_endpoint.html" with method="GET" path="/api/devices/<token>/apps/" desc="Lista apps monitorados" auth="jwt" params='[]' req="" res='[{"id":1,"package_name":"com.whatsapp","app_name":"WhatsApp","is_active":true}]' %}
+
+  {% include "dashboard/_endpoint.html" with method="POST" path="/api/devices/<token>/apps/" desc="Adiciona app à lista" auth="jwt" params='[["package_name","string","Obrigatório"],["app_name","string","Obrigatório"]]' req='{"package_name":"com.whatsapp","app_name":"WhatsApp"}' res='{"id":1,"package_name":"com.whatsapp","app_name":"WhatsApp","is_active":true}' %}
+
+  {% include "dashboard/_endpoint.html" with method="DELETE" path="/api/devices/<token>/apps/<id>/" desc="Remove app da lista" auth="jwt" params='[]' req="" res='{}' %}
+</div>
+
+<!-- MONITORING -->
+<div class="section">
+  <div class="section-title">🔍 Monitoramento</div>
+
+  {% include "dashboard/_endpoint.html" with method="POST" path="/api/analyze/" desc="Envia imagem para análise da IA — usado pelo app filho" auth="open" params='[["image","file","Obrigatório — multipart/form-data"],["device_token","string","Obrigatório"],["app_package","string","Opcional"]]' req='FormData: image=<bytes> device_token=abc123 app_package=com.whatsapp' res='{"risk_level":"attention","confidence":0.82,"detected_triggers":["apostas"],"description":"Conversa sobre jogos de azar detectada"}' %}
+
+  {% include "dashboard/_endpoint.html" with method="GET" path="/api/alerts/" desc="Histórico de alertas do device" auth="jwt" params='[["device_token","string","Obrigatório — query param"]]' req="" res='[{"id":1,"risk_level":"attention","category":"gambling","description":"...","confidence":0.82,"app_package":"com.whatsapp","created_at":"2026-05-16T14:00:00Z"}]' %}
+
+  {% include "dashboard/_endpoint.html" with method="GET" path="/api/devices/<token>/triggers/" desc="Lista gatilhos do device" auth="jwt" params='[]' req="" res='[{"id":1,"keyword":"apostas","category":"gambling"}]' %}
+
+  {% include "dashboard/_endpoint.html" with method="POST" path="/api/devices/<token>/triggers/" desc="Cria gatilho" auth="jwt" params='[["keyword","string","Obrigatório"],["category","string","Obrigatório"]]' req='{"keyword":"apostas","category":"gambling"}' res='{"id":1,"keyword":"apostas","category":"gambling"}' %}
+
+  {% include "dashboard/_endpoint.html" with method="DELETE" path="/api/devices/<token>/triggers/<id>/" desc="Remove gatilho" auth="jwt" params='[]' req="" res='{}' %}
+</div>
+
+{% endblock %}
+
+{% block extra_js %}
+<script>
+  document.querySelectorAll(".endpoint-header").forEach(header => {
+    header.addEventListener("click", () => {
+      const body = header.nextElementSibling;
+      body.classList.toggle("open");
+    });
+  });
+
+  document.querySelectorAll(".tab").forEach(tab => {
+    tab.addEventListener("click", () => {
+      const group = tab.closest(".tabs-group");
+      group.querySelectorAll(".tab").forEach(t => t.classList.remove("active"));
+      group.querySelectorAll(".tab-content").forEach(c => c.classList.remove("active"));
+      tab.classList.add("active");
+      group.querySelector(`[data-tab="${tab.dataset.target}"]`).classList.add("active");
+    });
+  });
+</script>
+{% endblock %}
