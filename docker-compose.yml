@@ -1,0 +1,43 @@
+version: "3.9"
+
+services:
+  db:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: vigilia
+      POSTGRES_PASSWORD: vigilia
+      POSTGRES_DB: vigilia
+    ports:
+      - "5432:5432"
+    volumes:
+      - pg_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U vigilia"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  api:
+    build: ./backend
+    ports:
+      - "8000:8000"
+    environment:
+      DJANGO_SECRET_KEY: hackathon-secret-change-in-prod
+      DB_NAME: vigilia
+      DB_USER: vigilia
+      DB_PASSWORD: vigilia
+      DB_HOST: db
+      DB_PORT: 5432
+      DEBUG: "True"
+      MISTRAL_API_KEY: ${MISTRAL_API_KEY:-}
+    depends_on:
+      db:
+        condition: service_healthy
+    volumes:
+      - ./backend:/app
+    command: >
+      sh -c "python manage.py migrate --noinput &&
+             python manage.py runserver 0.0.0.0:8000"
+
+volumes:
+  pg_data:

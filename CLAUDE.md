@@ -378,10 +378,13 @@ Tudo mais é polish — foco no fluxo funcionando.
 |---|---|---|
 | **ECA** Lei 8.069/1990 | Art. 17 | Inviolabilidade da imagem do menor — arquitetura sem transmissão respeita isso |
 | **ECA** | Art. 18 | Finalidade protetiva, não punitiva |
-| **ECA Digital** Lei 15.211/2025 | Art. 19 | Produtos de monitoramento devem garantir inviolabilidade das imagens e informar a criança |
+| **ECA Digital** Lei 15.211/2025 | Art. 19 | Produtos de monitoramento devem garantir inviolabilidade das imagens transmitidas aos pais — Vigília vai além: nunca transmite imagem |
 | **ECA Digital** | Art. 19 §1 | Criança informada em linguagem apropriada — ícone + tela de ciência |
-| **LGPD** Lei 13.709/2018 | Art. 6 | Finalidade, necessidade e minimização de dados |
+| **LGPD** Lei 13.709/2018 | Art. 6 III | Minimização: coleta só o estritamente necessário — base para monitorar apenas apps da lista |
 | **LGPD** | Art. 14 | Dados de crianças exigem consentimento específico do responsável legal |
+| **ECA Digital** | Art. 34 §1 e Art. 37 §único | Proibição de vigilância massiva/indiscriminada — dirigida ao governo ao regulamentar, não diretamente aos apps, mas reforça o espírito da lei |
+
+> **Nota:** A proibição de "vigilância massiva, genérica ou indiscriminada" (Art. 34 §1 e Art. 37 §único) é dirigida ao Poder Executivo ao regulamentar a lei, não diretamente aos apps privados. O argumento jurídico correto para o Vigília é o Art. 19 (imagens nunca transmitidas aos pais) + LGPD Art. 6 III (minimização via lista de apps).
 
 ### Zonas cinzentas
 
