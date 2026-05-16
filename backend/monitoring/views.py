@@ -6,7 +6,7 @@ from rest_framework.views import APIView
 from devices.models import Device
 from monitoring.models import Alert, Trigger
 from monitoring.serializers import AlertSerializer, TriggerSerializer
-from services.ai_agent import analyze_image
+from services.ai_agent import analyze_image, generate_recommendations
 
 
 class AnalyzeView(APIView):
@@ -25,16 +25,16 @@ class AnalyzeView(APIView):
 
         image_bytes = image_file.read()
         triggers = list(device.triggers.values_list("keyword", flat=True))
-        report = analyze_image(image_bytes, triggers)
+        report = analyze_image(image_bytes, triggers, app_package=app_package)
         del image_bytes
 
         if report["risk_level"] != "safe":
             Alert.objects.create(
                 device=device,
                 risk_level=report["risk_level"],
-                category=report["detected_triggers"][0] if report["detected_triggers"] else "geral",
-                description=report["description"],
-                confidence=report["confidence"],
+                category=report["categoria"],
+                description=report["descricao"],
+                confidence=report["confianca"],
                 app_package=app_package or None,
             )
 
@@ -73,3 +73,25 @@ class TriggerView(APIView):
         device = Device.objects.get(device_token=device_token, owner=request.user)
         Trigger.objects.filter(id=trigger_id, device=device).delete()
         return Response(status=204)
+
+
+class RecommendationsView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request, device_token):
+        try:
+            device = Device.objects.get(device_token=device_token, owner=request.user)
+        except Device.DoesNotExist:
+            return Response({"detail": "Device não encontrado."}, status=404)
+
+        alerts = list(
+            device.alerts.values("risk_level", "category", "description", "app_package", "created_at")[:30]
+        )
+
+        if not alerts:
+            return Response({"recommendations": [
+                "Nenhum alerta registrado ainda. Continue monitorando."
+            ]})
+
+        recommendations = generate_recommendations(device.child_name, alerts)
+        return Response({"recommendations": recommendations})
