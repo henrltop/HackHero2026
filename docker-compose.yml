@@ -8,7 +8,7 @@ services:
       POSTGRES_PASSWORD: vigilia
       POSTGRES_DB: vigilia
     ports:
-      - "5432:5432"
+      - "5433:5432"
     volumes:
       - pg_data:/var/lib/postgresql/data
     healthcheck:
@@ -29,14 +29,15 @@ services:
       DB_HOST: db
       DB_PORT: 5432
       DEBUG: "True"
-      MISTRAL_API_KEY: ${MISTRAL_API_KEY:-}
+      GEMINI_API_KEY: ${GEMINI_API_KEY:-}
+    restart: on-failure
     depends_on:
       db:
         condition: service_healthy
     volumes:
       - ./backend:/app
     command: >
-      sh -c "python manage.py migrate --noinput &&
+      sh -c "until python manage.py migrate --noinput; do echo 'DB not ready, retrying...'; sleep 3; done &&
              python manage.py runserver 0.0.0.0:8000"
 
 volumes:

@@ -1,12 +1,13 @@
 import secrets
 
 from rest_framework import status
-from rest_framework.permissions import IsAuthenticated
+from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
 from devices.models import Device, MonitoredApp
 from devices.serializers import DeviceSerializer, MonitoredAppSerializer
+from monitoring.serializers import TriggerSerializer
 
 
 class DeviceListCreateView(APIView):
@@ -44,3 +45,24 @@ class MonitoredAppView(APIView):
         device = Device.objects.get(device_token=device_token, owner=request.user)
         MonitoredApp.objects.filter(id=app_id, device=device).delete()
         return Response(status=status.HTTP_204_NO_CONTENT)
+
+
+class DeviceConfigView(APIView):
+    """Usado pelo app do filho para buscar apps monitorados e gatilhos."""
+    permission_classes = [AllowAny]
+
+    def get(self, request, device_token):
+        try:
+            device = Device.objects.get(device_token=device_token)
+        except Device.DoesNotExist:
+            return Response({"detail": "Device não encontrado."}, status=404)
+
+        apps = device.monitored_apps.filter(is_active=True).values("package_name", "app_name")
+        triggers = device.triggers.all()
+
+        return Response({
+            "device_token": device_token,
+            "child_name": device.child_name,
+            "monitored_apps": list(apps),
+            "triggers": TriggerSerializer(triggers, many=True).data,
+        })

@@ -1,0 +1,188 @@
+{% extends "base.html" %}
+{% block title %}Alertas — {{ device.child_name }}{% endblock %}
+
+{% block extra_head %}
+<style>
+  .risk-section { margin-bottom: 1.75rem; }
+
+  .risk-header {
+    display: flex; align-items: center; gap: .75rem;
+    padding: 1rem 1.25rem; border-radius: var(--radius);
+    cursor: pointer; user-select: none; margin-bottom: .75rem;
+    transition: opacity .15s;
+  }
+  .risk-header:hover { opacity: .9; }
+  .risk-header.alto    { background: linear-gradient(135deg, #7f1d1d, #dc2626); color: #fff; }
+  .risk-header.moderado{ background: linear-gradient(135deg, #78350f, #d97706); color: #fff; }
+  .risk-header.baixo   { background: linear-gradient(135deg, #064e3b, #059669); color: #fff; }
+
+  .risk-header-icon { font-size: 1.5rem; }
+  .risk-header-text h3 { font-size: 1rem; font-weight: 700; }
+  .risk-header-text p  { font-size: .8125rem; opacity: .85; margin-top: .1rem; }
+  .risk-count {
+    margin-left: auto; background: rgba(255,255,255,.25);
+    padding: .25rem .75rem; border-radius: 999px;
+    font-size: .875rem; font-weight: 700;
+  }
+  .risk-chevron { font-size: .9rem; transition: transform .2s; }
+  .risk-header.open .risk-chevron { transform: rotate(90deg); }
+
+  .risk-alerts { display: none; flex-direction: column; gap: .75rem; }
+  .risk-alerts.open { display: flex; }
+
+  .alert-card {
+    background: #fff; border-radius: 10px; box-shadow: var(--shadow);
+    overflow: hidden; cursor: pointer; transition: box-shadow .2s;
+  }
+  .alert-card:hover { box-shadow: 0 4px 16px rgba(0,0,0,.1); }
+
+  .alert-card-header {
+    display: flex; align-items: center; gap: .75rem;
+    padding: 1rem 1.25rem;
+  }
+  .alert-card-header .icon { font-size: 1.25rem; flex-shrink: 0; }
+  .alert-card-header .info { flex: 1; }
+  .alert-card-header .title { font-weight: 700; font-size: .9375rem; }
+  .alert-card-header .meta  { font-size: .8rem; color: var(--gray-400); margin-top: .2rem; }
+  .alert-card-header .chevron { color: var(--gray-400); transition: transform .2s; font-size: .85rem; }
+  .alert-card.open .alert-card-header .chevron { transform: rotate(90deg); }
+
+  .alert-detail {
+    display: none; border-top: 1px solid var(--gray-200);
+    padding: 1.25rem;
+  }
+  .alert-card.open .alert-detail { display: block; }
+
+  .detail-section { margin-bottom: 1.1rem; }
+  .detail-section h4 { font-size: .8125rem; font-weight: 700; color: var(--gray-400); text-transform: uppercase; letter-spacing: .05em; margin-bottom: .5rem; }
+  .detail-list { list-style: none; display: flex; flex-direction: column; gap: .35rem; }
+  .detail-list li { font-size: .875rem; color: var(--gray-600); display: flex; gap: .5rem; }
+  .detail-list li::before { content: "•"; color: var(--primary-400); flex-shrink: 0; }
+
+  .rec-list { list-style: none; display: flex; flex-direction: column; gap: .5rem; }
+  .rec-list li {
+    font-size: .875rem; color: var(--gray-700); background: var(--primary-50);
+    padding: .6rem .9rem; border-radius: 8px; display: flex; gap: .6rem;
+    border-left: 3px solid var(--primary-400);
+  }
+
+  .summary-bar {
+    display: grid; grid-template-columns: repeat(3, 1fr); gap: .75rem; margin-bottom: 1.75rem;
+  }
+  .summary-card {
+    border-radius: 10px; padding: 1.1rem; text-align: center; color: #fff;
+  }
+  .summary-card.alto    { background: linear-gradient(135deg, #7f1d1d, #dc2626); }
+  .summary-card.moderado{ background: linear-gradient(135deg, #78350f, #d97706); }
+  .summary-card.baixo   { background: linear-gradient(135deg, #064e3b, #059669); }
+  .summary-card .num { font-size: 2rem; font-weight: 800; }
+  .summary-card .lbl { font-size: .75rem; opacity: .85; margin-top: .2rem; }
+
+  .empty-state { text-align: center; padding: 3rem 2rem; color: var(--gray-400); }
+</style>
+{% endblock %}
+
+{% block content %}
+<a href="{% url 'dashboard:home' %}" class="back-link">← Voltar</a>
+
+<div class="page-header">
+  <h1>Alertas de {{ device.child_name }}</h1>
+  <p>Toque em um alerta para ver detalhes e recomendações.</p>
+</div>
+
+<!-- Resumo -->
+<div class="summary-bar">
+  <div class="summary-card alto">
+    <div class="num">{{ alto_count }}</div>
+    <div class="lbl">🔴 Risco Alto</div>
+  </div>
+  <div class="summary-card moderado">
+    <div class="num">{{ moderado_count }}</div>
+    <div class="lbl">🟡 Risco Médio</div>
+  </div>
+  <div class="summary-card baixo">
+    <div class="num">{{ baixo_count }}</div>
+    <div class="lbl">🟢 Risco Baixo</div>
+  </div>
+</div>
+
+{% if not alerts %}
+<div class="card empty-state">
+  <div style="font-size:3rem;margin-bottom:1rem;">✅</div>
+  <h2 style="font-size:1.125rem;color:var(--gray-900);margin-bottom:.5rem;">Nenhum alerta registrado</h2>
+  <p>Tudo tranquilo. Nenhum conteúdo de risco detectado ainda.</p>
+</div>
+{% else %}
+
+{% if altos %}
+<div class="risk-section">
+  <div class="risk-header alto" onclick="toggleSection(this)">
+    <div class="risk-header-icon">🔴</div>
+    <div class="risk-header-text">
+      <h3>Risco Alto</h3>
+      <p>Ação imediata recomendada</p>
+    </div>
+    <span class="risk-count">{{ alto_count }}</span>
+    <span class="risk-chevron">▶</span>
+  </div>
+  <div class="risk-alerts">
+    {% for alert in altos %}{% include "dashboard/_alert_card.html" %}{% endfor %}
+  </div>
+</div>
+{% endif %}
+
+{% if moderados %}
+<div class="risk-section">
+  <div class="risk-header moderado" onclick="toggleSection(this)">
+    <div class="risk-header-icon">🟡</div>
+    <div class="risk-header-text">
+      <h3>Risco Médio</h3>
+      <p>Fique atento e converse com seu filho</p>
+    </div>
+    <span class="risk-count">{{ moderado_count }}</span>
+    <span class="risk-chevron">▶</span>
+  </div>
+  <div class="risk-alerts">
+    {% for alert in moderados %}{% include "dashboard/_alert_card.html" %}{% endfor %}
+  </div>
+</div>
+{% endif %}
+
+{% if baixos %}
+<div class="risk-section">
+  <div class="risk-header baixo" onclick="toggleSection(this)">
+    <div class="risk-header-icon">🟢</div>
+    <div class="risk-header-text">
+      <h3>Risco Baixo</h3>
+      <p>Sem urgência — informativo</p>
+    </div>
+    <span class="risk-count">{{ baixo_count }}</span>
+    <span class="risk-chevron">▶</span>
+  </div>
+  <div class="risk-alerts">
+    {% for alert in baixos %}{% include "dashboard/_alert_card.html" %}{% endfor %}
+  </div>
+</div>
+{% endif %}
+
+{% endif %}
+{% endblock %}
+
+{% block extra_js %}
+<script>
+  function toggleSection(header) {
+    header.classList.toggle('open');
+    header.nextElementSibling.classList.toggle('open');
+  }
+
+  function toggleAlert(card) {
+    card.classList.toggle('open');
+  }
+
+  // Abre automaticamente a seção de alto risco se houver alertas
+  document.addEventListener('DOMContentLoaded', () => {
+    const altoHeader = document.querySelector('.risk-header.alto');
+    if (altoHeader) toggleSection(altoHeader);
+  });
+</script>
+{% endblock %}

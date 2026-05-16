@@ -1,0 +1,52 @@
+<div class="endpoint">
+  <div class="endpoint-header">
+    <span class="method {{ method }}">{{ method }}</span>
+    <span class="endpoint-path">{{ path }}</span>
+    <span class="endpoint-desc">{{ desc }}</span>
+    <span class="auth-badge {% if auth == 'jwt' %}jwt{% else %}open{% endif %}">
+      {% if auth == "jwt" %}🔒 JWT{% else %}público{% endif %}
+    </span>
+  </div>
+  <div class="endpoint-body">
+    {% if params %}
+    <div class="tabs-group">
+      <div class="tabs">
+        <div class="tab active" data-target="params">Parâmetros</div>
+        {% if req %}<div class="tab" data-target="request">Request</div>{% endif %}
+        <div class="tab" data-target="response">Response</div>
+      </div>
+      <div class="tab-content active" data-tab="params">
+        <table class="params-table">
+          <thead><tr><th>Campo</th><th>Tipo</th><th>Obrigatoriedade</th></tr></thead>
+          <tbody>
+            {% for row in params %}
+            <tr>
+              <td><code>{{ row.0 }}</code></td>
+              <td><span class="param-type">{{ row.1 }}</span></td>
+              <td>{% if "Obrig" in row.2 %}<span class="required">{{ row.2 }}</span>{% else %}<span class="optional">{{ row.2 }}</span>{% endif %}</td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+      {% if req %}
+      <div class="tab-content" data-tab="request">
+        <pre>{{ req }}</pre>
+      </div>
+      {% endif %}
+      <div class="tab-content" data-tab="response">
+        <pre>{{ res }}</pre>
+      </div>
+    </div>
+    {% else %}
+    <div class="tabs-group">
+      <div class="tabs">
+        <div class="tab active" data-target="response">Response</div>
+      </div>
+      <div class="tab-content active" data-tab="response">
+        <pre>{{ res }}</pre>
+      </div>
+    </div>
+    {% endif %}
+  </div>
+</div>
