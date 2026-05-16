@@ -5,6 +5,7 @@ from django.views.decorators.http import require_POST
 
 from devices.models import Device, MonitoredApp
 from monitoring.models import Alert, Trigger
+from services.ai_agent import get_risk_info
 
 RISK_THEMES = [
     ("financial",    "Informações Financeiras",  "Dados bancários, faturas e orçamentos",         "💰"),
@@ -77,13 +78,25 @@ def api_docs(request):
 @login_required
 def alerts_view(request, device_token):
     device = get_object_or_404(Device, device_token=device_token, owner=request.user)
-    risk_filter = request.GET.get("risk", "")
-    alerts = Alert.objects.filter(device=device)
-    if risk_filter:
-        alerts = alerts.filter(risk_level=risk_filter)
+    all_alerts = list(Alert.objects.filter(device=device)[:100])
+
+    # Enriquece cada alerta com pode_ser e recomendacoes da literatura
+    for alert in all_alerts:
+        info = get_risk_info(alert.category)
+        alert.pode_ser      = info["pode_ser"]
+        alert.recomendacoes = info["recomendacoes"]
+
+    altos     = [a for a in all_alerts if a.risk_level == "high_risk"]
+    moderados = [a for a in all_alerts if a.risk_level == "attention"]
+    baixos    = [a for a in all_alerts if a.risk_level == "safe"]
 
     return render(request, "dashboard/alerts.html", {
-        "device": device,
-        "alerts": alerts[:100],
-        "risk_filter": risk_filter,
+        "device":        device,
+        "alerts":        all_alerts,
+        "altos":         altos,
+        "moderados":     moderados,
+        "baixos":        baixos,
+        "alto_count":    len(altos),
+        "moderado_count":len(moderados),
+        "baixo_count":   len(baixos),
     })

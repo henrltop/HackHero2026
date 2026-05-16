@@ -24,8 +24,7 @@ class AnalyzeView(APIView):
             return Response({"detail": "Device não encontrado."}, status=404)
 
         image_bytes = image_file.read()
-        triggers = list(device.triggers.values_list("keyword", flat=True))
-        report = analyze_image(image_bytes, triggers, app_package=app_package)
+        report = analyze_image(image_bytes, app_package=app_package)
         del image_bytes
 
         if report["risk_level"] != "safe":

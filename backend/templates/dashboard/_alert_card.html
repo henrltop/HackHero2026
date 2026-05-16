@@ -1,0 +1,47 @@
+<div class="alert-card" onclick="toggleAlert(this)">
+  <div class="alert-card-header">
+    <div class="icon">
+      {% if alert.risk_level == "high_risk" %}🔴
+      {% elif alert.risk_level == "attention" %}🟡
+      {% else %}🟢{% endif %}
+    </div>
+    <div class="info">
+      <div class="title">{{ alert.category|title|cut:"_" }}</div>
+      <div class="meta">
+        {{ alert.created_at|date:"d/m/Y H:i" }}
+        {% if alert.app_package %} · {{ alert.app_package }}{% endif %}
+        · {{ alert.confidence|floatformat:0 }}% confiança
+      </div>
+    </div>
+    <span class="chevron">▶</span>
+  </div>
+
+  <div class="alert-detail">
+    <div class="detail-section">
+      <h4>O que foi detectado</h4>
+      <p style="font-size:.9rem;color:var(--gray-700);">{{ alert.description }}</p>
+    </div>
+
+    <div class="detail-section">
+      <h4>Pode ser</h4>
+      <ul class="detail-list">
+        {% for item in alert.pode_ser %}
+        <li>{{ item }}</li>
+        {% empty %}
+        <li>Conteúdo detectado pela IA como potencial risco.</li>
+        {% endfor %}
+      </ul>
+    </div>
+
+    <div class="detail-section">
+      <h4>Recomendações</h4>
+      <ul class="rec-list">
+        {% for rec in alert.recomendacoes %}
+        <li>{{ rec }}</li>
+        {% empty %}
+        <li>Converse com seu filho sobre o conteúdo detectado.</li>
+        {% endfor %}
+      </ul>
+    </div>
+  </div>
+</div>

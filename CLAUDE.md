@@ -9,15 +9,23 @@
 
 ---
 
-# 🛡️ Vigília — Planejamento Técnico
+# ✦ Aura — Planejamento Técnico
 
-> Monitoramento parental com IA: captura efêmera + análise Vision + alerta textual ao responsável legal.
+> Proteção digital parental com IA: monitoramento de jogos + análise Vision + alerta textual ao responsável legal.
 
 | | |
 |---|---|
+| **Nome** | Aura |
 | **Repositório** | https://github.com/Namem/HackHero2026 |
 | **Atualizado** | 2026-05-16 |
 | **Fase** | 🟡 Em desenvolvimento — backend Django pronto, Flutter pendente |
+
+## Escopo (definido com mentores)
+- **Somente jogos** — não monitora todos os apps, apenas jogos instalados
+- **Criança é informada** na abertura do jogo (popup no app filho)
+- **Pai concorda** durante cadastro que informará a criança (checkbox obrigatório — ECA Digital)
+- **Pai não configura filtros** — a IA classifica tudo automaticamente por categorias da literatura
+- **Dashboard do pai**: Alto / Médio / Baixo risco — ao clicar mostra "pode ser" + recomendações
 
 ---
 

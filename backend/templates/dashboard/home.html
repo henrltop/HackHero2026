@@ -1,37 +1,59 @@
 {% extends "base.html" %}
-{% block title %}Dispositivos — Vigília{% endblock %}
+{% block title %}Dispositivos — Aura{% endblock %}
 
 {% block extra_head %}
 <style>
   .devices-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 1.25rem; }
+
   .device-card {
     background: #fff; border-radius: var(--radius); box-shadow: var(--shadow);
     padding: 1.5rem; text-decoration: none; color: inherit;
     border: 2px solid transparent; transition: border .2s, box-shadow .2s;
     display: flex; flex-direction: column; gap: 1rem;
   }
-  .device-card:hover { border-color: var(--blue-600); box-shadow: 0 4px 12px rgba(37,99,235,.15); }
+  .device-card:hover { border-color: var(--primary-600); box-shadow: 0 4px 16px rgba(124,58,237,.15); }
+
   .device-avatar {
     width: 52px; height: 52px; border-radius: 14px;
-    background: var(--blue-900); color: #fff;
-    display: flex; align-items: center; justify-content: center;
+    background: linear-gradient(135deg, var(--primary-600), var(--accent));
+    color: #fff; display: flex; align-items: center; justify-content: center;
     font-size: 1.5rem; font-weight: 800;
   }
-  .device-name { font-size: 1.0625rem; font-weight: 700; }
+  .device-name  { font-size: 1.0625rem; font-weight: 700; }
   .device-token { font-size: .75rem; color: var(--gray-400); font-family: monospace; margin-top: .15rem; }
+
   .device-stats { display: flex; gap: .75rem; flex-wrap: wrap; }
-  .stat { font-size: .8125rem; color: var(--gray-600); background: var(--gray-100); padding: .25rem .65rem; border-radius: 999px; }
+  .stat { font-size: .8rem; color: var(--gray-600); background: var(--primary-50); padding: .25rem .65rem; border-radius: 999px; }
+
   .device-actions { display: flex; gap: .65rem; }
-  .empty-state { text-align: center; padding: 4rem 2rem; color: var(--gray-400); }
+
+  .empty-state { text-align: center; padding: 4rem 2rem; }
   .empty-state .icon { font-size: 3.5rem; display: block; margin-bottom: 1rem; }
-  .empty-state p { font-size: .9375rem; max-width: 320px; margin: 0 auto; }
+  .empty-state p { font-size: .9375rem; max-width: 320px; margin: .5rem auto 0; color: var(--gray-600); }
+
+  .hero {
+    background: linear-gradient(135deg, var(--primary-900), var(--primary-600));
+    border-radius: var(--radius); padding: 1.75rem; color: #fff; margin-bottom: 2rem;
+    display: flex; align-items: center; gap: 1.25rem;
+  }
+  .hero-icon { font-size: 2.5rem; }
+  .hero h2   { font-size: 1.25rem; font-weight: 800; }
+  .hero p    { font-size: .875rem; opacity: .8; margin-top: .25rem; }
 </style>
 {% endblock %}
 
 {% block content %}
+<div class="hero">
+  <div class="hero-icon">✦</div>
+  <div>
+    <h2>Bem-vindo ao Aura</h2>
+    <p>Proteção digital inteligente para seus filhos — análise por IA, sem armazenar imagens.</p>
+  </div>
+</div>
+
 <div class="page-header">
   <h1>Dispositivos Monitorados</h1>
-  <p>Selecione um dispositivo para gerenciar filtros e ver alertas.</p>
+  <p>Selecione um dispositivo para ver alertas e histórico.</p>
 </div>
 
 {% if devices %}
@@ -47,18 +69,13 @@
     </div>
 
     <div class="device-stats">
-      <span class="stat">📱 {{ device.monitored_apps.count }} apps</span>
+      <span class="stat">📱 {{ device.monitored_apps.count }} jogos</span>
       <span class="stat">🔔 {{ device.alerts.count }} alertas</span>
-      {% with high=device.alerts.all %}
-      {% endwith %}
     </div>
 
     <div class="device-actions">
       <a href="{% url 'dashboard:alerts' device.device_token %}" class="btn btn-primary" style="flex:1; justify-content:center;">
-        🔔 Alertas
-      </a>
-      <a href="{% url 'dashboard:filters' device.device_token %}" class="btn btn-secondary" style="flex:1; justify-content:center;">
-        ⚙️ Filtros
+        🔔 Ver Alertas
       </a>
     </div>
   </div>
@@ -68,8 +85,8 @@
 {% else %}
 <div class="card empty-state">
   <span class="icon">📱</span>
-  <h2 style="font-size:1.125rem; color:var(--gray-900); margin-bottom:.5rem;">Nenhum dispositivo ainda</h2>
-  <p>Instale o app Vigília no celular da criança e faça o login com esta conta para vincular o dispositivo.</p>
+  <h2 style="font-size:1.125rem; color:var(--gray-900);">Nenhum dispositivo vinculado</h2>
+  <p>Instale o app Aura no celular da criança e faça login com esta conta para vincular o dispositivo.</p>
 </div>
 {% endif %}
 {% endblock %}

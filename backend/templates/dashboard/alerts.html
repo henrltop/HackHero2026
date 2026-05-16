@@ -3,54 +3,82 @@
 
 {% block extra_head %}
 <style>
-  .filter-bar { display: flex; gap: .65rem; margin-bottom: 1.5rem; flex-wrap: wrap; }
-  .filter-btn {
-    padding: .45rem 1rem; border-radius: 999px; font-size: .8125rem; font-weight: 600;
-    border: 1.5px solid var(--gray-200); background: #fff; cursor: pointer;
-    text-decoration: none; color: var(--gray-600); transition: all .15s;
-  }
-  .filter-btn:hover { border-color: var(--blue-600); color: var(--blue-700); }
-  .filter-btn.active { background: var(--blue-700); border-color: var(--blue-700); color: #fff; }
-  .filter-btn.high_risk.active  { background: var(--red-600); border-color: var(--red-600); }
-  .filter-btn.attention.active  { background: var(--yellow-600); border-color: var(--yellow-600); }
-  .filter-btn.safe.active       { background: var(--green-600); border-color: var(--green-600); }
+  .risk-section { margin-bottom: 1.75rem; }
 
-  .alert-list { display: flex; flex-direction: column; gap: .75rem; }
-  .alert-item {
-    background: #fff; border-radius: var(--radius); box-shadow: var(--shadow);
-    padding: 1.125rem 1.25rem; display: flex; gap: 1rem; align-items: flex-start;
-    border-left: 4px solid transparent;
+  .risk-header {
+    display: flex; align-items: center; gap: .75rem;
+    padding: 1rem 1.25rem; border-radius: var(--radius);
+    cursor: pointer; user-select: none; margin-bottom: .75rem;
+    transition: opacity .15s;
   }
-  .alert-item.high_risk { border-left-color: var(--red-600); }
-  .alert-item.attention { border-left-color: var(--yellow-600); }
-  .alert-item.safe      { border-left-color: var(--green-600); }
+  .risk-header:hover { opacity: .9; }
+  .risk-header.alto    { background: linear-gradient(135deg, #7f1d1d, #dc2626); color: #fff; }
+  .risk-header.moderado{ background: linear-gradient(135deg, #78350f, #d97706); color: #fff; }
+  .risk-header.baixo   { background: linear-gradient(135deg, #064e3b, #059669); color: #fff; }
 
-  .alert-icon { font-size: 1.5rem; flex-shrink: 0; margin-top: .1rem; }
-  .alert-body { flex: 1; min-width: 0; }
-  .alert-top { display: flex; align-items: center; gap: .65rem; flex-wrap: wrap; margin-bottom: .35rem; }
-  .alert-desc { font-size: .9rem; color: var(--gray-600); line-height: 1.5; }
-  .alert-meta { display: flex; gap: 1rem; margin-top: .5rem; flex-wrap: wrap; }
-  .alert-meta span { font-size: .775rem; color: var(--gray-400); }
-  .alert-confidence {
-    margin-left: auto; font-size: .8125rem; font-weight: 700;
-    color: var(--gray-400); flex-shrink: 0; align-self: center;
+  .risk-header-icon { font-size: 1.5rem; }
+  .risk-header-text h3 { font-size: 1rem; font-weight: 700; }
+  .risk-header-text p  { font-size: .8125rem; opacity: .85; margin-top: .1rem; }
+  .risk-count {
+    margin-left: auto; background: rgba(255,255,255,.25);
+    padding: .25rem .75rem; border-radius: 999px;
+    font-size: .875rem; font-weight: 700;
   }
+  .risk-chevron { font-size: .9rem; transition: transform .2s; }
+  .risk-header.open .risk-chevron { transform: rotate(90deg); }
 
-  .empty-state { text-align: center; padding: 4rem 2rem; color: var(--gray-400); }
-  .empty-state .icon { font-size: 3.5rem; display: block; margin-bottom: 1rem; }
+  .risk-alerts { display: none; flex-direction: column; gap: .75rem; }
+  .risk-alerts.open { display: flex; }
+
+  .alert-card {
+    background: #fff; border-radius: 10px; box-shadow: var(--shadow);
+    overflow: hidden; cursor: pointer; transition: box-shadow .2s;
+  }
+  .alert-card:hover { box-shadow: 0 4px 16px rgba(0,0,0,.1); }
+
+  .alert-card-header {
+    display: flex; align-items: center; gap: .75rem;
+    padding: 1rem 1.25rem;
+  }
+  .alert-card-header .icon { font-size: 1.25rem; flex-shrink: 0; }
+  .alert-card-header .info { flex: 1; }
+  .alert-card-header .title { font-weight: 700; font-size: .9375rem; }
+  .alert-card-header .meta  { font-size: .8rem; color: var(--gray-400); margin-top: .2rem; }
+  .alert-card-header .chevron { color: var(--gray-400); transition: transform .2s; font-size: .85rem; }
+  .alert-card.open .alert-card-header .chevron { transform: rotate(90deg); }
+
+  .alert-detail {
+    display: none; border-top: 1px solid var(--gray-200);
+    padding: 1.25rem;
+  }
+  .alert-card.open .alert-detail { display: block; }
+
+  .detail-section { margin-bottom: 1.1rem; }
+  .detail-section h4 { font-size: .8125rem; font-weight: 700; color: var(--gray-400); text-transform: uppercase; letter-spacing: .05em; margin-bottom: .5rem; }
+  .detail-list { list-style: none; display: flex; flex-direction: column; gap: .35rem; }
+  .detail-list li { font-size: .875rem; color: var(--gray-600); display: flex; gap: .5rem; }
+  .detail-list li::before { content: "•"; color: var(--primary-400); flex-shrink: 0; }
+
+  .rec-list { list-style: none; display: flex; flex-direction: column; gap: .5rem; }
+  .rec-list li {
+    font-size: .875rem; color: var(--gray-700); background: var(--primary-50);
+    padding: .6rem .9rem; border-radius: 8px; display: flex; gap: .6rem;
+    border-left: 3px solid var(--primary-400);
+  }
 
   .summary-bar {
-    display: grid; grid-template-columns: repeat(3, 1fr); gap: .75rem; margin-bottom: 1.5rem;
+    display: grid; grid-template-columns: repeat(3, 1fr); gap: .75rem; margin-bottom: 1.75rem;
   }
   .summary-card {
-    background: #fff; border-radius: 10px; padding: 1rem; text-align: center;
-    box-shadow: var(--shadow);
+    border-radius: 10px; padding: 1.1rem; text-align: center; color: #fff;
   }
-  .summary-card .num { font-size: 1.75rem; font-weight: 800; }
-  .summary-card .lbl { font-size: .75rem; color: var(--gray-600); margin-top: .2rem; }
-  .num-red    { color: var(--red-600); }
-  .num-yellow { color: var(--yellow-600); }
-  .num-green  { color: var(--green-600); }
+  .summary-card.alto    { background: linear-gradient(135deg, #7f1d1d, #dc2626); }
+  .summary-card.moderado{ background: linear-gradient(135deg, #78350f, #d97706); }
+  .summary-card.baixo   { background: linear-gradient(135deg, #064e3b, #059669); }
+  .summary-card .num { font-size: 2rem; font-weight: 800; }
+  .summary-card .lbl { font-size: .75rem; opacity: .85; margin-top: .2rem; }
+
+  .empty-state { text-align: center; padding: 3rem 2rem; color: var(--gray-400); }
 </style>
 {% endblock %}
 
@@ -58,70 +86,103 @@
 <a href="{% url 'dashboard:home' %}" class="back-link">← Voltar</a>
 
 <div class="page-header">
-  <h1>Alertas</h1>
-  <p>Histórico de monitoramento de <strong>{{ device.child_name }}</strong></p>
+  <h1>Alertas de {{ device.child_name }}</h1>
+  <p>Toque em um alerta para ver detalhes e recomendações.</p>
 </div>
 
 <!-- Resumo -->
-{% with all_alerts=device.alerts.all %}
 <div class="summary-bar">
-  <div class="summary-card">
-    <div class="num num-red">{{ all_alerts|length }}</div>
-    <div class="lbl">Total</div>
+  <div class="summary-card alto">
+    <div class="num">{{ alto_count }}</div>
+    <div class="lbl">🔴 Risco Alto</div>
   </div>
-  <div class="summary-card">
-    <div class="num num-yellow">
-      {{ all_alerts|dictsort:"risk_level"|length }}
-    </div>
-    <div class="lbl">Atenção</div>
+  <div class="summary-card moderado">
+    <div class="num">{{ moderado_count }}</div>
+    <div class="lbl">🟡 Risco Médio</div>
   </div>
-  <div class="summary-card">
-    <div class="num num-green">{{ device.monitored_apps.count }}</div>
-    <div class="lbl">Apps monitorados</div>
+  <div class="summary-card baixo">
+    <div class="num">{{ baixo_count }}</div>
+    <div class="lbl">🟢 Risco Baixo</div>
   </div>
 </div>
-{% endwith %}
 
-<!-- Filtros -->
-<div class="filter-bar">
-  <a href="?risk=" class="filter-btn {% if not risk_filter %}active{% endif %}">Todos</a>
-  <a href="?risk=high_risk" class="filter-btn high_risk {% if risk_filter == 'high_risk' %}active{% endif %}">🔴 Alto Risco</a>
-  <a href="?risk=attention" class="filter-btn attention {% if risk_filter == 'attention' %}active{% endif %}">🟡 Atenção</a>
-  <a href="?risk=safe"      class="filter-btn safe      {% if risk_filter == 'safe'      %}active{% endif %}">🟢 Seguro</a>
-</div>
-
-<!-- Lista -->
-{% if alerts %}
-<div class="alert-list">
-  {% for alert in alerts %}
-  <div class="alert-item {{ alert.risk_level }}">
-    <div class="alert-icon">
-      {% if alert.risk_level == "high_risk" %}🔴
-      {% elif alert.risk_level == "attention" %}🟡
-      {% else %}🟢{% endif %}
-    </div>
-    <div class="alert-body">
-      <div class="alert-top">
-        <span class="badge badge-{{ alert.risk_level }}">{{ alert.get_risk_level_display }}</span>
-        {% if alert.category %}<span class="badge" style="background:var(--gray-100);color:var(--gray-600);">{{ alert.category }}</span>{% endif %}
-      </div>
-      <div class="alert-desc">{{ alert.description }}</div>
-      <div class="alert-meta">
-        <span>🕐 {{ alert.created_at|date:"d/m/Y H:i" }}</span>
-        {% if alert.app_package %}<span>📱 {{ alert.app_package }}</span>{% endif %}
-      </div>
-    </div>
-    <div class="alert-confidence">{{ alert.confidence|floatformat:0 }}%</div>
-  </div>
-  {% endfor %}
-</div>
-
-{% else %}
+{% if not alerts %}
 <div class="card empty-state">
-  <span class="icon">✅</span>
-  <h2 style="font-size:1.125rem; color:var(--gray-900); margin-bottom:.5rem;">Nenhum alerta encontrado</h2>
-  <p>{% if risk_filter %}Nenhum alerta com esse nível de risco.{% else %}Tudo tranquilo por aqui. Nenhum conteúdo de risco detectado ainda.{% endif %}</p>
+  <div style="font-size:3rem;margin-bottom:1rem;">✅</div>
+  <h2 style="font-size:1.125rem;color:var(--gray-900);margin-bottom:.5rem;">Nenhum alerta registrado</h2>
+  <p>Tudo tranquilo. Nenhum conteúdo de risco detectado ainda.</p>
+</div>
+{% else %}
+
+{% if altos %}
+<div class="risk-section">
+  <div class="risk-header alto" onclick="toggleSection(this)">
+    <div class="risk-header-icon">🔴</div>
+    <div class="risk-header-text">
+      <h3>Risco Alto</h3>
+      <p>Ação imediata recomendada</p>
+    </div>
+    <span class="risk-count">{{ alto_count }}</span>
+    <span class="risk-chevron">▶</span>
+  </div>
+  <div class="risk-alerts">
+    {% for alert in altos %}{% include "dashboard/_alert_card.html" %}{% endfor %}
+  </div>
 </div>
 {% endif %}
 
+{% if moderados %}
+<div class="risk-section">
+  <div class="risk-header moderado" onclick="toggleSection(this)">
+    <div class="risk-header-icon">🟡</div>
+    <div class="risk-header-text">
+      <h3>Risco Médio</h3>
+      <p>Fique atento e converse com seu filho</p>
+    </div>
+    <span class="risk-count">{{ moderado_count }}</span>
+    <span class="risk-chevron">▶</span>
+  </div>
+  <div class="risk-alerts">
+    {% for alert in moderados %}{% include "dashboard/_alert_card.html" %}{% endfor %}
+  </div>
+</div>
+{% endif %}
+
+{% if baixos %}
+<div class="risk-section">
+  <div class="risk-header baixo" onclick="toggleSection(this)">
+    <div class="risk-header-icon">🟢</div>
+    <div class="risk-header-text">
+      <h3>Risco Baixo</h3>
+      <p>Sem urgência — informativo</p>
+    </div>
+    <span class="risk-count">{{ baixo_count }}</span>
+    <span class="risk-chevron">▶</span>
+  </div>
+  <div class="risk-alerts">
+    {% for alert in baixos %}{% include "dashboard/_alert_card.html" %}{% endfor %}
+  </div>
+</div>
+{% endif %}
+
+{% endif %}
+{% endblock %}
+
+{% block extra_js %}
+<script>
+  function toggleSection(header) {
+    header.classList.toggle('open');
+    header.nextElementSibling.classList.toggle('open');
+  }
+
+  function toggleAlert(card) {
+    card.classList.toggle('open');
+  }
+
+  // Abre automaticamente a seção de alto risco se houver alertas
+  document.addEventListener('DOMContentLoaded', () => {
+    const altoHeader = document.querySelector('.risk-header.alto');
+    if (altoHeader) toggleSection(altoHeader);
+  });
+</script>
 {% endblock %}
